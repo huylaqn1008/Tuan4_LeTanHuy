@@ -109,14 +109,28 @@ namespace Tuan4_LeTanHuy.Controllers
             lstGiohang.Clear();
             return RedirectToAction("GioHang");
         }
-        public int SoLuongTon()
+        public ActionResult DatHang()
         {
-            int slt = 0;
-            List<GioHang> lstGiohang = Session["GioHang"] as List<GioHang>;
-            if (slt != null)
+            List<GioHang> lstGiohang = Laygiohang();
+            var temp = lstGiohang;
+
+            foreach (var item in temp)
             {
-                slt = lstGiohang.
+                var sanpham = data.Saches.Where(n => n.masach == item.masach).FirstOrDefault();
+                if (sanpham != null)
+                {
+                    if (sanpham.soluongton > item.iSoluong)
+                    {
+                        var tempsl = sanpham.soluongton - item.iSoluong;
+                        sanpham.soluongton = tempsl;
+                        UpdateModel(sanpham);
+                        data.SubmitChanges();
+                    }
+                }
             }
+            return View(lstGiohang);
+            lstGiohang.Clear();
+            //đặt hàng
         }
     }
 }
