@@ -10,7 +10,7 @@ namespace Tuan4_LeTanHuy.Controllers
     public class NguoiDungController : Controller
     {
         // GET: NguoiDung
-        MyDataDataContext db = new MyDataDataContext();
+        MyDataDataContext data = new MyDataDataContext();
         [HttpGet]
         public ActionResult DangKy()
         {
@@ -46,8 +46,8 @@ namespace Tuan4_LeTanHuy.Controllers
                     kh.diachi = diachi;
                     kh.dienthoai = dienthoai;
                     kh.ngaysinh = DateTime.Parse(ngaysinh);
-                    db.KhachHangs.InsertOnSubmit(kh);
-                    db.SubmitChanges();
+                    data.KhachHangs.InsertOnSubmit(kh);
+                    data.SubmitChanges();
                     return RedirectToAction("DangNhap");
                 }
             }
@@ -58,11 +58,12 @@ namespace Tuan4_LeTanHuy.Controllers
         {
             return View();
         }
+        [HttpPost]
         public ActionResult DangNhapTK(FormCollection collection)
         {
             var tendangnhap = collection["tendangnhap"];
             var matkhau = collection["matkhau"];
-            KhachHang kh = db.KhachHangs.SingleOrDefault(n => n.tendangnhap == tendangnhap && n.matkhau == matkhau);
+            KhachHang kh = data.KhachHangs.SingleOrDefault(n => n.tendangnhap == tendangnhap && n.matkhau == matkhau);
             if (kh != null)
             {
                 ViewBag.ThongBao = "Chúc mừng bạn đăng nhập thành công";
