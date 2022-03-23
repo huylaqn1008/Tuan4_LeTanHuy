@@ -109,28 +109,82 @@ namespace Tuan4_LeTanHuy.Controllers
             lstGiohang.Clear();
             return RedirectToAction("GioHang");
         }
+        //public ActionResult DatHang()
+        //{
+        //    List<GioHang> lstGiohang = Laygiohang();
+        //    var temp = lstGiohang;
+
+        //    foreach (var item in temp)
+        //    {
+        //        var sanpham = data.Saches.Where(n => n.masach == item.masach).FirstOrDefault();
+        //        if (sanpham != null)
+        //        {
+        //            if (sanpham.soluongton > item.iSoluong)
+        //            {
+        //                var tempsl = sanpham.soluongton - item.iSoluong;
+        //                sanpham.soluongton = tempsl;
+        //                UpdateModel(sanpham);
+        //                data.SubmitChanges();
+        //            }
+        //        }
+        //    }
+        //    return View(lstGiohang);
+        //    lstGiohang.Clear();
+        //    //đặt hàng
+        //}
+        [HttpGet]
         public ActionResult DatHang()
         {
-            List<GioHang> lstGiohang = Laygiohang();
-            var temp = lstGiohang;
-
-            foreach (var item in temp)
+            if (Session["TaiKhoan"] == null || Session["TaiKhoan"].ToString() == "")
             {
-                var sanpham = data.Saches.Where(n => n.masach == item.masach).FirstOrDefault();
-                if (sanpham != null)
-                {
-                    if (sanpham.soluongton > item.iSoluong)
-                    {
-                        var tempsl = sanpham.soluongton - item.iSoluong;
-                        sanpham.soluongton = tempsl;
-                        UpdateModel(sanpham);
-                        data.SubmitChanges();
-                    }
-                }
+                return RedirectToAction("DangNhap,NguoiDung");
             }
+            if (Session["Giohang"] == null)
+            {
+                return RedirectToAction("Index", "Sach");
+            }
+            List<GioHang> lstGiohang = Laygiohang();
+            ViewBag.Tongsoluong = TongSoLuong();
+            ViewBag.Tongtien = TongTien();
+            ViewBag.Tongsoluongsanpham = TongSoLuongSanPham();
             return View(lstGiohang);
-            lstGiohang.Clear();
-            //đặt hàng
+        }
+        public ActionResult DatHang(System.Web.Mvc.FormCollection collection)
+        {
+            DonHang dh = new DonHang();
+            KhachHang kh = (KhachHang)Session["TaiKhoan"];
+            Sach s = new Sach();
+
+            List<GioHang> gh = Laygiohang();
+            var ngaygiao = string.Format("{0:MM/dd/yyyy}", collection["NgayGiao"]);
+
+            dh.makh = kh.makh;
+            dh.ngaydat = DateTime.Now;
+            dh.ngaygiao = DateTime.Parse(ngaygiao);
+            dh.giaohang = false;
+            dh.thanhtoan = false;
+
+            data.DonHangs.InsertOnSubmit(dh);
+            data.SubmitChanges();
+            foreach (var ele in gh)
+            {
+                ChiTietDonHang ctdh = new ChiTietDonHang();
+                ctdh.madon = dh.madon;
+                ctdh.masach = ele.masach;
+                ctdh.soluong = ele.iSoluong;
+                ctdh.gia = (decimal)ele.giaban;
+                s = data.Saches.Single(n => n.masach == ele.masach);
+                s.soluongton -= ctdh.soluong;
+                data.SubmitChanges();
+                data.ChiTietDonHangs.InsertOnSubmit(ctdh);
+            }
+            data.SubmitChanges();
+            Session["Giohang"] = null;
+            return RedirectToAction("XacNhanDonHang", "GioHang");
+        }
+        public ActionResult XacnhanDonhang()
+        {
+            return View();
         }
     }
 }
